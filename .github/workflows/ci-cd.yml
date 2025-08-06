@@ -1,0 +1,130 @@
+name: CI/CD Pipeline with Bun.js
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        bun-version: [1.1.38, latest]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test_password
+          MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Bun.js ${{ matrix.bun-version }}
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: ${{ matrix.bun-version }}
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Install dependencies
+      run: bun install --frozen-lockfile
+
+    - name: Create .env file for testing
+      run: |
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=test_password" >> .env
+        echo "DB_DATABASE=test_db" >> .env
+        echo "DB_HOST=localhost" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "APP_PORT=8080" >> .env
+        echo "NODE_ENV=test" >> .env
+        echo "SECRET_KEY=test-secret-key-for-ci" >> .env
+        echo "GMAIL_USER=test@example.com" >> .env
+        echo "GMAIL_PASS=test_password" >> .env
+        echo "GMAIL_NAME=Test User" >> .env
+        echo "CONTACT_ADDRESS=Test Address" >> .env
+
+    - name: TypeScript type checking
+      run: bun run build:tsc
+
+    - name: Build project
+      run: bun run build
+
+    - name: Run linting (if available)
+      run: bun run lint --if-present
+
+    - name: Run tests (if available)
+      run: bun test --if-present
+
+    - name: Performance benchmark
+      run: |
+        echo "Running performance check with Bun.js..."
+        time bun --version
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Bun.js
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+
+    - name: Install dependencies
+      run: bun install --frozen-lockfile
+
+    - name: Build project
+      run: bun run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: build/
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          backend-bun-typeorm:latest
+          backend-bun-typeorm:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

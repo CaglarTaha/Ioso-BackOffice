@@ -1,0 +1,26 @@
+{
+   "compilerOptions": {
+      "lib": [
+         "es2020",
+         "DOM"
+      ],
+      "target": "es2020",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "outDir": "./build",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "sourceMap": true,
+      "strict": false,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "resolveJsonModule": true,
+      "strictPropertyInitialization": false,
+      "noImplicitAny": false,
+      "noImplicitReturns": false,
+      "noUnusedLocals": false,
+      "noUnusedParameters": false
+   }
+}

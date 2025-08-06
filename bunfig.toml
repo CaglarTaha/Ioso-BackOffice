@@ -1,0 +1,21 @@
+[install]
+# Configure package manager
+cache = true
+exact = false
+
+# Prefer exact versions for production
+frozen-lockfile = false
+
+[run]
+# Enable bun shell for running scripts
+shell = "bun"
+
+# Hot reload configuration
+watch = true
+clearScreen = false
+
+[build]
+# TypeScript configuration
+target = "bun"
+minify = false
+sourcemap = "external"

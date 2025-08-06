@@ -1,0 +1,460 @@
+{
+  "info": {
+    "_postman_id": "12345678-1234-1234-1234-123456789abc",
+    "name": "IOCO API Tests",
+    "description": "Complete API test collection for IOCO Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "organizationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Create User (Public)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const responseJson = pm.response.json();",
+              "    if (responseJson.data && responseJson.data.id) {",
+              "        pm.collectionVariables.set('userId', responseJson.data.id);",
+              "        console.log('User ID set to:', responseJson.data.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Ahmet\",\n  \"lastName\": \"Yılmaz\",\n  \"email\": \"ahmet@ioco.com\",\n  \"password\": \"123456789\",\n  \"roleId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/public/create/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["public", "create", "users"]
+        }
+      }
+    },
+    {
+      "name": "2. Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const responseJson = pm.response.json();",
+              "    if (responseJson.data && responseJson.data.token) {",
+              "        pm.collectionVariables.set('authToken', responseJson.data.token);",
+              "        console.log('Auth token set successfully');",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ahmet@ioco.com\",\n  \"password\": \"123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/public/user/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["public", "user", "login"]
+        }
+      }
+    },
+    {
+      "name": "3. Create Second User (Authenticated)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Mehmet\",\n  \"lastName\": \"Özkan\",\n  \"email\": \"mehmet@ioco.com\",\n  \"password\": \"123456789\",\n  \"roleId\": 2\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/create/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["create", "users"]
+        }
+      }
+    },
+    {
+      "name": "4. Get All Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"]
+        }
+      }
+    },
+    {
+      "name": "5. Create Organization",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const responseJson = pm.response.json();",
+              "    if (responseJson.data && responseJson.data.id) {",
+              "        pm.collectionVariables.set('organizationId', responseJson.data.id);",
+              "        console.log('Organization ID set to:', responseJson.data.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"IOCO Teknoloji\",\n  \"description\": \"Yazılım geliştirme ve teknoloji çözümleri şirketi\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/organizations",
+          "host": ["{{baseUrl}}"],
+          "path": ["organizations"]
+        }
+      }
+    },
+    {
+      "name": "6. Get All Organizations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/organizations",
+          "host": ["{{baseUrl}}"],
+          "path": ["organizations"]
+        }
+      }
+    },
+    {
+      "name": "7. Add Member to Organization",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": {{userId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/organizations/{{organizationId}}/members",
+          "host": ["{{baseUrl}}"],
+          "path": ["organizations", "{{organizationId}}", "members"]
+        }
+      }
+    },
+    {
+      "name": "8. Get My Organizations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/organizations/my",
+          "host": ["{{baseUrl}}"],
+          "path": ["organizations", "my"]
+        }
+      }
+    },
+    {
+      "name": "9. Create Calendar Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const responseJson = pm.response.json();",
+              "    if (responseJson.data && responseJson.data.id) {",
+              "        pm.collectionVariables.set('eventId', responseJson.data.id);",
+              "        console.log('Event ID set to:', responseJson.data.id);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Haftalık Proje Toplantısı\",\n  \"description\": \"Sprint review ve planning toplantısı\",\n  \"startDate\": \"2025-08-07T10:00:00.000Z\",\n  \"endDate\": \"2025-08-07T11:30:00.000Z\",\n  \"organizationId\": {{organizationId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events"]
+        }
+      }
+    },
+    {
+      "name": "10. Create Second Calendar Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Teknik Sunum\",\n  \"description\": \"Yeni teknolojiler hakkında sunum\",\n  \"startDate\": \"2025-08-08T14:00:00.000Z\",\n  \"endDate\": \"2025-08-08T15:00:00.000Z\",\n  \"organizationId\": {{organizationId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events"]
+        }
+      }
+    },
+    {
+      "name": "11. Get My Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events/my",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events", "my"]
+        }
+      }
+    },
+    {
+      "name": "12. Get Organization Events",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events/organization/{{organizationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events", "organization", "{{organizationId}}"]
+        }
+      }
+    },
+    {
+      "name": "13. Get Events by Date Range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events/organization/{{organizationId}}/date-range?startDate=2025-08-01&endDate=2025-08-31",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events", "organization", "{{organizationId}}", "date-range"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2025-08-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2025-08-31"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "14. Get User by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        }
+      }
+    },
+    {
+      "name": "15. Get Organization by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/organizations/{{organizationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["organizations", "{{organizationId}}"]
+        }
+      }
+    },
+    {
+      "name": "16. Get Event by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events/{{eventId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events", "{{eventId}}"]
+        }
+      }
+    },
+    {
+      "name": "17. Update Event",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Güncellenmiş Proje Toplantısı\",\n  \"description\": \"Sprint review, planning ve retrospektif toplantısı\",\n  \"startDate\": \"2025-08-07T10:00:00.000Z\",\n  \"endDate\": \"2025-08-07T12:00:00.000Z\",\n  \"organizationId\": {{organizationId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/calendar-events/{{eventId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["calendar-events", "{{eventId}}"]
+        }
+      }
+    },
+    {
+      "name": "18. Update User",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Ahmet Güncellenmiş\",\n  \"lastName\": \"Yılmaz\",\n  \"email\": \"ahmet@ioco.com\",\n  \"roleId\": 1\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}"]
+        }
+      }
+    }
+  ]
+}

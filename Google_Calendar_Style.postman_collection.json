@@ -1,0 +1,456 @@
+{
+	"info": {
+		"_postman_id": "google-calendar-style",
+		"name": "IOCO Google Calendar Style API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Create Role (Admin)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Admin\",\n  \"description\": \"Sistem yöneticisi rolü\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/roles",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "roles"]
+				}
+			}
+		},
+		{
+			"name": "2. Create Role (User)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"User\",\n  \"description\": \"Standart kullanıcı rolü\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/roles",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "roles"]
+				}
+			}
+		},
+		{
+			"name": "3. Create User (Ahmet)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (responseCode.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.id) {",
+							"        pm.environment.set(\"userId1\", jsonData.data.id);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Ahmet\",\n  \"lastName\": \"Yılmaz\",\n  \"email\": \"ahmet@ioco.com\",\n  \"password\": \"123456789\",\n  \"roleId\": 1\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/users/public/create/users",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "users", "public", "create", "users"]
+				}
+			}
+		},
+		{
+			"name": "4. Create User (Mehmet)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (responseCode.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.id) {",
+							"        pm.environment.set(\"userId2\", jsonData.data.id);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"firstName\": \"Mehmet\",\n  \"lastName\": \"Özkan\",\n  \"email\": \"mehmet@ioco.com\",\n  \"password\": \"123456789\",\n  \"roleId\": 2\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/users/public/create/users",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "users", "public", "create", "users"]
+				}
+			}
+		},
+		{
+			"name": "5. Login User (Ahmet)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (responseCode.code === 200) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.token) {",
+							"        pm.environment.set(\"authToken\", jsonData.data.token);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"ahmet@ioco.com\",\n  \"password\": \"123456789\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/users/public/user/login",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "users", "public", "user", "login"]
+				}
+			}
+		},
+		{
+			"name": "6. Create Organization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (responseCode.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.id) {",
+							"        pm.environment.set(\"organizationId\", jsonData.data.id);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"IOCO Teknoloji\",\n  \"description\": \"Yazılım geliştirme ve teknoloji çözümleri şirketi\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/organizations",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "organizations"]
+				}
+			}
+		},
+		{
+			"name": "7. Add Members to Organization",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": {{userId2}}\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/organizations/{{organizationId}}/members",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "organizations", "{{organizationId}}", "members"]
+				}
+			}
+		},
+		{
+			"name": "8. Create Personal Event (Busy)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Kişisel Randevu\",\n  \"description\": \"Doktor randevusu\",\n  \"startDate\": \"2025-08-07T09:00:00.000Z\",\n  \"endDate\": \"2025-08-07T10:00:00.000Z\",\n  \"organizationId\": {{organizationId}},\n  \"eventType\": \"personal\",\n  \"availability\": \"busy\",\n  \"isVisible\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/events",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "9. Create Meeting Event",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Proje Toplantısı\",\n  \"description\": \"Sprint planning toplantısı\",\n  \"startDate\": \"2025-08-07T14:00:00.000Z\",\n  \"endDate\": \"2025-08-07T15:30:00.000Z\",\n  \"organizationId\": {{organizationId}},\n  \"eventType\": \"meeting\",\n  \"availability\": \"busy\",\n  \"isVisible\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/events",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "10. Create Free Time Event",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Mola Zamanı\",\n  \"description\": \"Öğle arası molası\",\n  \"startDate\": \"2025-08-07T12:00:00.000Z\",\n  \"endDate\": \"2025-08-07T13:00:00.000Z\",\n  \"organizationId\": {{organizationId}},\n  \"eventType\": \"personal\",\n  \"availability\": \"free\",\n  \"isVisible\": true\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/events",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "11. Check User Availability",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/events/my/availability?startDate=2025-08-07T08:00:00.000Z&endDate=2025-08-07T18:00:00.000Z",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events", "my", "availability"],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2025-08-07T08:00:00.000Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-08-07T18:00:00.000Z"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "12. Get Organization Calendar View",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/events/organization/{{organizationId}}/calendar-view?startDate=2025-08-07T00:00:00.000Z&endDate=2025-08-07T23:59:59.000Z",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events", "organization", "{{organizationId}}", "calendar-view"],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2025-08-07T00:00:00.000Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-08-07T23:59:59.000Z"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "13. Get All Members Events (Grouped)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/events/organization/{{organizationId}}/all-members?startDate=2025-08-07T00:00:00.000Z&endDate=2025-08-07T23:59:59.000Z",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events", "organization", "{{organizationId}}", "all-members"],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2025-08-07T00:00:00.000Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-08-07T23:59:59.000Z"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "14. Find Free Time Slots (60 min)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/events/organization/{{organizationId}}/free-slots?duration=60&startDate=2025-08-07T08:00:00.000Z&endDate=2025-08-07T18:00:00.000Z",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events", "organization", "{{organizationId}}", "free-slots"],
+					"query": [
+						{
+							"key": "duration",
+							"value": "60"
+						},
+						{
+							"key": "startDate",
+							"value": "2025-08-07T08:00:00.000Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-08-07T18:00:00.000Z"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "15. Find Free Time Slots (30 min)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/events/organization/{{organizationId}}/free-slots?duration=30&startDate=2025-08-07T08:00:00.000Z&endDate=2025-08-07T18:00:00.000Z",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "3000",
+					"path": ["api", "events", "organization", "{{organizationId}}", "free-slots"],
+					"query": [
+						{
+							"key": "duration",
+							"value": "30"
+						},
+						{
+							"key": "startDate",
+							"value": "2025-08-07T08:00:00.000Z"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-08-07T18:00:00.000Z"
+						}
+					]
+				}
+			}
+		}
+	]
+}
