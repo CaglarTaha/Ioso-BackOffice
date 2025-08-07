@@ -3,169 +3,138 @@ import { Request, Response } from 'express';
 import { CalendarEventService } from '../../services/calendar-event.service';
 import { createCalendarEventSchema, updateCalendarEventSchema } from '../../validators/calendar-event.validator';
 import { AuthenticatedRequest } from '../../interfaces/common.interface';
+import { validate } from '../../utils/common.utils';
 
 export class CalendarEventController {
-  private calendarEventService = new CalendarEventService();
 
-  createEvent = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const { error, value } = createCalendarEventSchema.validate(req.body);
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
-      return;
-    }
-
-    const event = await this.calendarEventService.createEvent(value, req.user.id);
+  static async createEvent(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const data = validate(req.body, createCalendarEventSchema);
+    const event = await CalendarEventService.createEvent(data, req.user.id);
     
     if (!event) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
-    res.status(201).json(event);
-    return;
-  };
+    res.status(201).json({ data: event });
+  }
 
-  getEventsByOrganization = async (req: Request, res: Response): Promise<void> => {
+  static async getEventsByOrganization(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.organizationId);
-    const events = await this.calendarEventService.getEventsByOrganization(organizationId);
-    res.json(events);
-    return;
-  };
+    const events = await CalendarEventService.getEventsByOrganization(organizationId);
+    res.json({ data: events });
+  }
 
-  getEventById = async (req: Request, res: Response): Promise<void> => {
+  static async getEventById(req: Request, res: Response): Promise<void> {
     const id = parseInt(req.params.id);
-    const event = await this.calendarEventService.getEventById(id);
+    const event = await CalendarEventService.getEventById(id);
     
     if (!event) {
-      res.status(404).json({ error: 'Event not found' });
-      return;
+      return res.status(404).json({ message: 'Event not found' });
     }
 
-    res.json(event);
-    return;
-  };
+    res.json({ data: event });
+  }
 
-  updateEvent = async (req: Request, res: Response): Promise<void> => {
+  static async updateEvent(req: Request, res: Response): Promise<void> {
     const id = parseInt(req.params.id);
-    const { error, value } = updateCalendarEventSchema.validate(req.body);
-    
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
-      return;
-    }
-
-    const event = await this.calendarEventService.updateEvent(id, value);
+    const data = validate(req.body, updateCalendarEventSchema);
+    const event = await CalendarEventService.updateEvent(id, data);
     
     if (!event) {
-      res.status(404).json({ error: 'Event not found' });
-      return;
+      return res.status(404).json({ message: 'Event not found' });
     }
 
-    res.json(event);
-    return;
-  };
+    res.json({ data: event });
+  }
 
-  deleteEvent = async (req: Request, res: Response): Promise<void> => {
+  static async deleteEvent(req: Request, res: Response): Promise<void> {
     const id = parseInt(req.params.id);
-    const deleted = await this.calendarEventService.deleteEvent(id);
+    const deleted = await CalendarEventService.deleteEvent(id);
     
     if (!deleted) {
-      res.status(404).json({ error: 'Event not found' });
-      return;
+      return res.status(404).json({ message: 'Event not found' });
     }
 
     res.status(204).send();
-    return;
-  };
+  }
 
-  getEventsByDateRange = async (req: Request, res: Response): Promise<void> => {
+  static async getEventsByDateRange(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.organizationId);
     const startDate = new Date(req.query.startDate as string);
     const endDate = new Date(req.query.endDate as string);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      res.status(400).json({ error: 'Invalid date format' });
-      return;
+      return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const events = await this.calendarEventService.getEventsByDateRange(organizationId, startDate, endDate);
-    res.json(events);
-    return;
-  };
+    const events = await CalendarEventService.getEventsByDateRange(organizationId, startDate, endDate);
+    res.json({ data: events });
+  }
 
-  getUserEvents = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const events = await this.calendarEventService.getUserEvents(req.user.id);
-    res.json(events);
-    return;
-  };
+  static async getUserEvents(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const events = await CalendarEventService.getUserEvents(req.user.id);
+    res.json({ data: events });
+  }
 
   // Yeni endpoint'ler: Google Calendar benzeri özellikler
-  checkUserAvailability = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  static async checkUserAvailability(req: AuthenticatedRequest, res: Response): Promise<void> {
     const startDate = new Date(req.query.startDate as string);
     const endDate = new Date(req.query.endDate as string);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      res.status(400).json({ error: 'Invalid date format' });
-      return;
+      return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const busyEvents = await this.calendarEventService.checkUserAvailability(req.user.id, startDate, endDate);
+    const busyEvents = await CalendarEventService.checkUserAvailability(req.user.id, startDate, endDate);
     res.json({ 
       userId: req.user.id,
       period: { startDate, endDate },
       busySlots: busyEvents 
     });
-    return;
-  };
+  }
 
-  getOrganizationCalendarView = async (req: Request, res: Response): Promise<void> => {
+  static async getOrganizationCalendarView(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.organizationId);
     const startDate = new Date(req.query.startDate as string);
     const endDate = new Date(req.query.endDate as string);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      res.status(400).json({ error: 'Invalid date format' });
-      return;
+      return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const events = await this.calendarEventService.getOrganizationCalendarView(organizationId, startDate, endDate);
-    res.json(events);
-    return;
-  };
+    const events = await CalendarEventService.getOrganizationCalendarView(organizationId, startDate, endDate);
+    res.json({ data: events });
+  }
 
-  getAllMembersEvents = async (req: Request, res: Response): Promise<void> => {
+  static async getAllMembersEvents(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.organizationId);
     const startDate = new Date(req.query.startDate as string);
     const endDate = new Date(req.query.endDate as string);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      res.status(400).json({ error: 'Invalid date format' });
-      return;
+      return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const groupedEvents = await this.calendarEventService.getAllMembersEvents(organizationId, startDate, endDate);
+    const groupedEvents = await CalendarEventService.getAllMembersEvents(organizationId, startDate, endDate);
     res.json(groupedEvents);
-    return;
-  };
+  }
 
-  findFreeTimeSlots = async (req: Request, res: Response): Promise<void> => {
+  static async findFreeTimeSlots(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.organizationId);
-    const duration = parseInt(req.query.duration as string) || 60; // default 60 dakika
+    const duration = parseInt(req.query.duration as string) || 60;
     const startDate = new Date(req.query.startDate as string);
     const endDate = new Date(req.query.endDate as string);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      res.status(400).json({ error: 'Invalid date format' });
-      return;
+      return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const freeSlots = await this.calendarEventService.findTimeSlots(organizationId, duration, startDate, endDate);
+    const freeSlots = await CalendarEventService.findTimeSlots(organizationId, duration, startDate, endDate);
     res.json({ 
       organizationId,
       duration: `${duration} minutes`,
       period: { startDate, endDate },
       freeSlots 
     });
-    return;
-  };
+  }
 }

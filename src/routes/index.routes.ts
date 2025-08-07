@@ -7,11 +7,9 @@ import calendarEventRoutes from "./calendar-events/index.routes";
 import organizationInviteRoutes from "./organization-invites/index.routes";
 const router = Router();
 
-// Mevcut user ve role routes'lar (kendi path'lerini kullanır)
-router.use(roleRoutes);
-router.use(userRoutes);
-
-// Yeni organizasyon ve events routes'lar
+// Tüm routes'lar /api prefix'i kullanacak
+router.use('/api', roleRoutes);
+router.use('/api', userRoutes);
 router.use('/api/organizations', organizationRoutes);
 router.use('/api/events', calendarEventRoutes);
 router.use('/api/invites', organizationInviteRoutes);

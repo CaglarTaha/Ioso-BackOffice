@@ -146,7 +146,7 @@ static async publicUserCreate(userData: Partial<User>): Promise<User> {
     return user;
   }
 
-  static async login(email: string, password: string): Promise<{ user: User; token: string }> {
+  static async login(email: string, password: string): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     const user = await AppDataSource.manager.findOne(User, { where: { email }, relations: ['role']});
 
     if (!user) {
@@ -169,8 +169,52 @@ static async publicUserCreate(userData: Partial<User>): Promise<User> {
       type: user.role.name,
     };
 
-    const token = jwt.sign(tokenPayload, config.jwt.key, { expiresIn: '1h' });
+    const accessToken = jwt.sign(tokenPayload, config.jwt.key, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({ id: user.id }, config.jwt.key, { expiresIn: '7d' });
 
-    return { user, token };
+    // Save refresh token to user
+    user.refreshToken = refreshToken;
+    await AppDataSource.manager.save(user);
+
+    return { user, accessToken, refreshToken };
+  }
+
+  static async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      const decoded = jwt.verify(refreshToken, config.jwt.key) as { id: number };
+      const user = await AppDataSource.manager.findOne(User, { 
+        where: { id: decoded.id, refreshToken }, 
+        relations: ['role'] 
+      });
+
+      if (!user) {
+        const error = new Error('Invalid refresh token') as any;
+        error.statusCode = 401;
+        throw error;
+      }
+
+      const tokenPayload = {
+        id: user.id,
+        email: user.email,
+        type: user.role.name,
+      };
+
+      const newAccessToken = jwt.sign(tokenPayload, config.jwt.key, { expiresIn: '1h' });
+      const newRefreshToken = jwt.sign({ id: user.id }, config.jwt.key, { expiresIn: '7d' });
+
+      // Update refresh token
+      user.refreshToken = newRefreshToken;
+      await AppDataSource.manager.save(user);
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      const err = new Error('Invalid refresh token') as any;
+      err.statusCode = 401;
+      throw err;
+    }
+  }
+
+  static async logout(userId: number): Promise<void> {
+    await AppDataSource.manager.update(User, userId, { refreshToken: null });
   }
 }

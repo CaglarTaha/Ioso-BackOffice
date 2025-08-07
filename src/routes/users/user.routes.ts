@@ -51,7 +51,9 @@ router.get("/users/role/:roleId", authenticateToken(["Admin", "User"]), asyncWra
  *       '500':
  *         description: Internal Server Error
  */
-router.post('/public/user/login', asyncWrap(UserController.LoginUser));
+router.post('/auth/login', asyncWrap(UserController.LoginUser));
+router.post('/auth/refresh', asyncWrap(UserController.RefreshToken));
+router.post('/auth/logout', authenticateToken(["User", "Admin"]), asyncWrap(UserController.LogoutUser));
 
 /**
  * @swagger
@@ -107,7 +109,7 @@ router.post("/create/users", asyncWrap(UserController.createUser));
  *       '500':
  *         description: Internal Server Error
  */
-router.post("/public/create/users", asyncWrap(UserController.publicCreateUser));
+router.post("/auth/register", asyncWrap(UserController.publicCreateUser));
 
 
 /**

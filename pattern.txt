@@ -1,0 +1,247 @@
+===========================
+🌐 BACKEND FULL PATTERN (TypeScript + Express + TypeORM)
+===========================
+
+Bu dokümantasyon, Express + TypeScript + TypeORM + Swagger tabanlı bir backend geliştirmede Entity'den Route'a kadar olan standart bir yapıyı tarif eder.
+
+====================================
+1️⃣ ENTITY TANIMI (user.entity.ts)
+====================================
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Role } from './role.entity';
+
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  password: string;
+
+  @ManyToOne(() => Role, (role) => role.users)
+  role: Role;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+
+==========================================
+2️⃣ INTERFACE TANIMLARI (user.interface.ts)
+==========================================
+
+import { Role } from '../entity/role.entity';
+import { RoleOutput } from './role.interface';
+
+export interface UserInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: Role;
+}
+
+export interface UserOutput {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: RoleOutput;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RoleOutput {
+  id: number;
+  name: string;
+}
+
+====================================
+3️⃣ SERVICE ÖRNEĞİ (user.service.ts)
+====================================
+import { User } from '../entity/user.entity';
+import { AppDataSource } from '../data-source';
+import { UserInput } from '../interfaces/user.interface';
+
+const userRepository = AppDataSource.getRepository(User);
+
+export const UserServices = {
+  async getAllUsers() {
+    return await userRepository.find({ relations: ['role'] });
+  },
+
+  async getUserById(id: number) {
+    return await userRepository.findOne({ where: { id }, relations: ['role'] });
+  },
+
+  async createUser(data: UserInput) {
+    const newUser = userRepository.create(data);
+    return await userRepository.save(newUser);
+  },
+
+  async deleteUser(id: number) {
+    await userRepository.delete(id);
+  },
+};
+
+====================================
+4️⃣ UTILS – asyncWrap.ts
+====================================
+// express-async-wrap benzeri kendi middleware'in
+export default function asyncWrap(fn: any) {
+  return function (req: any, res: any, next: any) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
+
+=====================================================
+5️⃣ CONTROLLER (user.controller.ts - Class Based)
+=====================================================
+import { Request, Response } from 'express';
+import { UserServices } from '../../services/user.service';
+import { validate } from '../../utils/common.utils';
+import { UserInput, UserOutput } from '../../interfaces/user.interface';
+
+export class UserController {
+  static async getAllUsers(req: Request, res: Response) {
+    const users = await UserServices.getAllUsers();
+    res.json({ data: users });
+  }
+
+  static async getUserById(req: Request, res: Response) {
+    const id = parseInt(req.params.id);
+    const user = await UserServices.getUserById(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({ data: user });
+  }
+
+  static async createUser(req: Request, res: Response) {
+    const input = validate(req.body); // Joi ya da Zod validatoru
+    const newUser = await UserServices.createUser(input);
+    res.status(201).json({ data: newUser });
+  }
+
+  static async deleteUser(req: Request, res: Response) {
+    const id = parseInt(req.params.id);
+    await UserServices.deleteUser(id);
+    res.status(204).send();
+  }
+}
+
+===========================================================
+6️⃣ ROUTER (user.route.ts - asyncWrap ile Entegre ve Swagger)
+===========================================================
+
+import express from 'express';
+import asyncWrap from '../../utils/asyncWrap';
+import { UserController } from '../../controllers/user/user.controller';
+const router = express.Router();
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [User]
+ *     responses:
+ *       200:
+ *         description: User list
+ */
+router.get('/users', asyncWrap(UserController.getAllUsers));
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User found
+ *       404:
+ *         description: User not found
+ */
+router.get('/users/:id', asyncWrap(UserController.getUserById));
+
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Create a new user
+ *     tags: [User]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserInput'
+ *     responses:
+ *       201:
+ *         description: User created
+ */
+router.post('/users', asyncWrap(UserController.createUser));
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete a user by ID
+ *     tags: [User]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       204:
+ *         description: Deleted successfully
+ */
+router.delete('/users/:id', asyncWrap(UserController.deleteUser));
+
+export default router;
+
+===========================
+📁 DOSYA YAPISI STANDARTI
+===========================
+/src
+  ├── controllers
+  │   └── user.controller.ts
+  ├── entity
+  │   └── user.entity.ts
+  ├── interfaces
+  │   └── user.interface.ts
+  │   └── role.interface.ts
+  ├── routes
+  │   └── user.route.ts
+  ├── services
+  │   └── user.service.ts
+  ├── utils
+  │   └── asyncWrap.ts
+  └── validators
+      └── user.validator.ts
+
+===========================
+🔁 REUSABLE COMPONENTS
+===========================
+✅ `asyncWrap(...)`: Tüm route çağrılarını hata yakalama ile sarmalar.
+✅ Swagger: Swagger-jsdoc ile API dökümantasyonu uyumludur.
+✅ Joi/Zod: `validate(...)` fonksiyonu ile `UserInput` doğrulama.
+✅ `mapToUser(...)`: Entity'yi `UserOutput`'a dönüştürmek için mapper.
+

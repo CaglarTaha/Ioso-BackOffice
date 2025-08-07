@@ -18,6 +18,9 @@ export class User extends Base {
   @Column()
   password: string;
 
+  @Column({ nullable: true })
+  refreshToken: string;
+
   @Column()
   @RelationId((user: User) => user.role)
   roleId: number;

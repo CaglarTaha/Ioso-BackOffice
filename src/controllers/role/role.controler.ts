@@ -13,16 +13,16 @@ export class RoleController {
 
   static async getAllRoles(req: Request, res: Response) {
     const allRoles = await RoleService.getAllRoles();
-    res.json(allRoles);
+    res.json({ data: allRoles });
   }
 
   static async getRoleById(req: Request, res: Response) {
     const id = parseInt(req.params.id);
     const role = await RoleService.getRoleById(id);
     if (!role) {
-      return res.status(404).json({ error: 'Role not found' });
+      return res.status(404).json({ message: 'Role not found' });
     }
-    res.json(role);
+    res.json({ data: role });
   }
 
 
@@ -32,7 +32,7 @@ export class RoleController {
       const { name } = req.body;
       const updatedRole = await RoleService.updateRole(id, { name });
       if (!updatedRole) {
-        return res.status(404).json({ error: 'Role not found' });
+        return res.status(404).json({ message: 'Role not found' });
       }
       res.json(validate({data: mapToRole(updatedRole)},roleResponseValidator));
 

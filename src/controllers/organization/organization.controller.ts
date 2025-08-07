@@ -3,117 +3,89 @@ import { Request, Response } from 'express';
 import { OrganizationService } from '../../services/organization.service';
 import { createOrganizationSchema, updateOrganizationSchema, addMemberSchema } from '../../validators/organization.validator';
 import { AuthenticatedRequest } from '../../interfaces/common.interface';
+import { validate } from '../../utils/common.utils';
 
 export class OrganizationController {
-  private organizationService = new OrganizationService();
 
-  createOrganization = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const { error, value } = createOrganizationSchema.validate(req.body);
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
-      return;
-    }
-
-    const organization = await this.organizationService.createOrganization(value);
+  static async createOrganization(req: AuthenticatedRequest, res: Response) {
+    const data = validate(req.body, createOrganizationSchema);
+    const organization = await OrganizationService.createOrganization(data);
     
     if (req.user?.id) {
-      await this.organizationService.addMemberToOrganization(organization.id, req.user.id);
+      await OrganizationService.addMemberToOrganization(organization.id, req.user.id);
     }
 
-    res.status(201).json(organization);
-    return;
-  };
+    res.status(201).json({ data: organization });
+  }
 
-  getAllOrganizations = async (req: Request, res: Response): Promise<void> => {
-    const organizations = await this.organizationService.getAllOrganizations();
-    res.json(organizations);
-    return;
-  };
+  static async getAllOrganizations(req: Request, res: Response) {
+    const organizations = await OrganizationService.getAllOrganizations();
+    res.json({ data: organizations });
+  }
 
-  getOrganizationById = async (req: Request, res: Response): Promise<void> => {
+  static async getOrganizationById(req: Request, res: Response) {
     const id = parseInt(req.params.id);
-    const organization = await this.organizationService.getOrganizationById(id);
+    const organization = await OrganizationService.getOrganizationById(id);
     
     if (!organization) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
-    res.json(organization);
-    return;
-  };
+    res.json({ data: organization });
+  }
 
-  updateOrganization = async (req: Request, res: Response): Promise<void> => {
+  static async updateOrganization(req: Request, res: Response) {
     const id = parseInt(req.params.id);
-    const { error, value } = updateOrganizationSchema.validate(req.body);
-    
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
-      return;
-    }
-
-    const organization = await this.organizationService.updateOrganization(id, value);
+    const data = validate(req.body, updateOrganizationSchema);
+    const organization = await OrganizationService.updateOrganization(id, data);
     
     if (!organization) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
-    res.json(organization);
-    return;
-  };
+    res.json({ data: organization });
+  }
 
-  deleteOrganization = async (req: Request, res: Response): Promise<void> => {
+  static async deleteOrganization(req: Request, res: Response) {
     const id = parseInt(req.params.id);
-    const deleted = await this.organizationService.deleteOrganization(id);
+    const deleted = await OrganizationService.deleteOrganization(id);
     
     if (!deleted) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
     res.status(204).send();
-    return;
-  };
+  }
 
-  addMember = async (req: Request, res: Response): Promise<void> => {
+  static async addMember(req: Request, res: Response) {
     const organizationId = parseInt(req.params.id);
-    const { error, value } = addMemberSchema.validate(req.body);
-    
-    if (error) {
-      res.status(400).json({ error: error.details[0].message });
-      return;
-    }
-
-    const organization = await this.organizationService.addMemberToOrganization(organizationId, value.userId);
+    const data = validate(req.body, addMemberSchema);
+    const organization = await OrganizationService.addMemberToOrganization(organizationId, data.userId);
     
     if (!organization) {
-      res.status(404).json({ error: 'Organization or user not found' });
-      return;
+      return res.status(404).json({ message: 'Organization or user not found' });
     }
 
-    res.json(organization);
-    return;
-  };
+    res.json({ data: organization });
+  }
 
-  removeMember = async (req: Request, res: Response): Promise<void> => {
+  static async removeMember(req: Request, res: Response) {
     const organizationId = parseInt(req.params.id);
     const userId = parseInt(req.params.userId);
-
-    const organization = await this.organizationService.removeMemberFromOrganization(organizationId, userId);
+    const organization = await OrganizationService.removeMemberFromOrganization(organizationId, userId);
     
     if (!organization) {
-      res.status(404).json({ error: 'Organization not found' });
-      return;
+      return res.status(404).json({ message: 'Organization not found' });
     }
 
-    res.json(organization);
-    return;
-  };
+    res.json({ data: organization });
+  }
 
-  getUserOrganizations = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const organizations = await this.organizationService.getUserOrganizations(req.user.id);
-    res.json(organizations);
-    return;
-  };
+  static async getUserOrganizations(req: AuthenticatedRequest, res: Response) {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+    const organizations = await OrganizationService.getUserOrganizations(req.user.id);
+    res.json({ data: organizations });
+  }
 }
