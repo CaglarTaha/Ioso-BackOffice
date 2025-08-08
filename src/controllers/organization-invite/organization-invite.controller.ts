@@ -5,6 +5,8 @@ import { AuthenticatedRequest } from '../../interfaces/common.interface';
 import { validate } from '../../utils/common.utils';
 import Joi from 'joi';
 
+const organizationInviteService = new OrganizationInviteService();
+
 export class OrganizationInviteController {
 
   static async createInvite(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -15,10 +17,11 @@ export class OrganizationInviteController {
     });
 
     const data = validate(req.body, schema);
-    const invite = await OrganizationInviteService.createInvite(data, req.user.id);
+    const invite = await organizationInviteService.createInvite(data, req.user.id);
     
     if (!invite) {
-      return res.status(404).json({ error: 'Organizasyon bulunamadı veya yetkiniz yok' });
+      res.status(404).json({ error: 'Organizasyon bulunamadı veya yetkiniz yok' });
+      return;
     }
 
     res.status(201).json({
@@ -35,7 +38,7 @@ export class OrganizationInviteController {
       return res.status(400).json({ error: 'Geçersiz organizasyon ID' });
     }
 
-    const invites = await OrganizationInviteService.getOrganizationInvites(organizationId);
+    const invites = await organizationInviteService.getOrganizationInvites(organizationId);
     res.json({
       success: true,
       data: invites
@@ -48,13 +51,14 @@ export class OrganizationInviteController {
     });
 
     const data = validate(req.body, schema);
-    const result = await OrganizationInviteService.joinByInviteCode(data.inviteCode, req.user.id);
+    const result = await organizationInviteService.joinByInviteCode(data.inviteCode, req.user.id);
     
     if (!result.success) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         success: false,
         error: result.message 
       });
+      return;
     }
 
     res.json({
@@ -71,10 +75,11 @@ export class OrganizationInviteController {
       return res.status(400).json({ error: 'Geçersiz davet kodu' });
     }
 
-    const invite = await OrganizationInviteService.getInviteByCode(inviteCode);
+    const invite = await organizationInviteService.getInviteByCode(inviteCode);
     
     if (!invite) {
-      return res.status(404).json({ error: 'Davet kodu bulunamadı' });
+      res.status(404).json({ error: 'Davet kodu bulunamadı' });
+      return;
     }
 
     const publicInviteInfo = {
@@ -102,10 +107,11 @@ export class OrganizationInviteController {
       return res.status(400).json({ error: 'Geçersiz davet ID' });
     }
 
-    const result = await OrganizationInviteService.deactivateInvite(inviteId, req.user.id);
+    const result = await organizationInviteService.deactivateInvite(inviteId, req.user.id);
     
     if (!result) {
-      return res.status(404).json({ error: 'Davet bulunamadı veya yetkiniz yok' });
+      res.status(404).json({ error: 'Davet bulunamadı veya yetkiniz yok' });
+      return;
     }
 
     res.json({

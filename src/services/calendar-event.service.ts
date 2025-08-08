@@ -2,11 +2,13 @@
 import { AppDataSource } from '../core/data-source';
 import { CalendarEvent } from '../entity/calendar-event.entity';
 import { Organization } from '../entity/organization.entity';
+import { CalendarEventAttendee } from '../entity/calendar-event-attendee.entity';
 import { CreateCalendarEventDto, UpdateCalendarEventDto } from '../interfaces/calendar-event.interface';
 
 export class CalendarEventService {
   private calendarEventRepository = AppDataSource.getRepository(CalendarEvent);
   private organizationRepository = AppDataSource.getRepository(Organization);
+  private attendeeRepository = AppDataSource.getRepository(CalendarEventAttendee);
 
   async createEvent(data: CreateCalendarEventDto, createdById: number): Promise<CalendarEvent | null> {
     const organization = await this.organizationRepository.findOne({
@@ -15,12 +17,19 @@ export class CalendarEventService {
 
     if (!organization) return null;
 
+    // Ensure Date objects for start/end
     const event = this.calendarEventRepository.create({
       ...data,
-      createdById
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      createdById,
     });
 
-    return await this.calendarEventRepository.save(event);
+    const saved = await this.calendarEventRepository.save(event);
+    // creator becomes attendee (going)
+    const attendee = this.attendeeRepository.create({ eventId: saved.id, userId: createdById, status: 'going' });
+    await this.attendeeRepository.save(attendee);
+    return saved;
   }
 
   async getEventsByOrganization(organizationId: number): Promise<CalendarEvent[]> {
@@ -32,10 +41,14 @@ export class CalendarEventService {
   }
 
   async getEventById(id: number): Promise<CalendarEvent | null> {
-    return await this.calendarEventRepository.findOne({
+    const event = await this.calendarEventRepository.findOne({
       where: { id },
       relations: ['createdBy', 'organization']
     });
+    if (!event) return null;
+    const attendees = await this.attendeeRepository.find({ where: { eventId: id }, relations: ['user'] });
+    (event as any).attendees = attendees.map(a => ({ id: a.userId, status: a.status, user: a.user }));
+    return event as any;
   }
 
   async updateEvent(id: number, data: UpdateCalendarEventDto): Promise<CalendarEvent | null> {
@@ -109,7 +122,7 @@ export class CalendarEventService {
       .orderBy('event.startDate', 'ASC')
       .getMany();
 
-    // Kullanıcıya göre grupla
+    // Kullanıcıya göre grupla (id -> events[])
     const groupedEvents: {[key: string]: CalendarEvent[]} = {};
     events.forEach(event => {
       const userId = event.createdById.toString();

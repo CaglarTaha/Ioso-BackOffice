@@ -11,7 +11,7 @@ const router = Router();
 router.use('/api', roleRoutes);
 router.use('/api', userRoutes);
 router.use('/api/organizations', organizationRoutes);
-router.use('/api/events', calendarEventRoutes);
+router.use('/api/calendar-events', calendarEventRoutes);
 router.use('/api/invites', organizationInviteRoutes);
 
 export default router;

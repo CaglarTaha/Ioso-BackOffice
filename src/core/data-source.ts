@@ -6,6 +6,8 @@ import { User } from '../entity/user.entity';
 import { Role } from '../entity/role.entity';
 import { Organization } from '../entity/organization.entity';
 import { CalendarEvent } from '../entity/calendar-event.entity';
+import { OrganizationInvite } from '../entity/organization-invite.entity';
+import { CalendarEventAttendee } from '../entity/calendar-event-attendee.entity';
 
 
 
@@ -18,7 +20,7 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: true,
   logging: false,
-  entities: [User, Role, Organization, CalendarEvent], // Simplified entities array
+  entities: [User, Role, Organization, CalendarEvent, OrganizationInvite, CalendarEventAttendee], // register all entities
   migrations: [],
   subscribers: [],
 });
