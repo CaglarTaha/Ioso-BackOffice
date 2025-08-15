@@ -80,6 +80,8 @@ export class OrganizationService {
     const organizationRepository = AppDataSource.getRepository(Organization);
     return await organizationRepository
     .createQueryBuilder('organization')
+      .leftJoin('organization.members', 'member')
+      .where('member.id = :userId', { userId })
      .loadRelationCountAndMap('organization.memberCount', 'organization.members')
      .loadRelationCountAndMap('organization.eventCount', 'organization.events')
     .getMany();
