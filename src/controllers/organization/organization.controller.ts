@@ -1,7 +1,7 @@
 // src/controllers/organization/organization.controller.ts
 import { Request, Response } from 'express';
 import { OrganizationService } from '../../services/organization.service';
-import { createOrganizationSchema, updateOrganizationSchema, addMemberSchema } from '../../validators/organization.validator';
+import { createOrganizationSchema, updateOrganizationSchema, addMemberSchema, getOrganizationByIdDetailSchema } from '../../validators/organization.validator';
 import { AuthenticatedRequest } from '../../interfaces/common.interface';
 import { validate } from '../../utils/common.utils';
 
@@ -28,7 +28,19 @@ export class OrganizationController {
     const organization = await OrganizationService.getOrganizationById(id);
     
     if (!organization) {
-      return res.status(404).json({ message: 'Organization not found' });
+      res.status(404).json({ message: 'Organization not found' });
+    }
+
+    res.json({ data: organization });
+  }
+
+  static async getOrganizationByIdDetail(req: Request, res: Response) {
+    const id = parseInt(req.params.id);
+    const data = validate(req.body, getOrganizationByIdDetailSchema);
+    const organization = await OrganizationService.getOrganizationByIdDetail(id, data.timeZone, data.startDate, data.endDate);
+    
+    if (!organization) {
+      res.status(404).json({ message: 'Organization not found' });
     }
 
     res.json({ data: organization });

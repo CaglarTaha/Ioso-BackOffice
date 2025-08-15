@@ -1,13 +1,12 @@
 import { Entity, Column, ManyToOne, Unique, RelationId } from 'typeorm';
 import { Base } from './base.entity';
-import { CalendarEvent } from './calendar-event.entity';
 import { User } from './user.entity';
 
 @Entity()
 @Unique(['eventId', 'userId'])
 export class CalendarEventAttendee extends Base {
-  @ManyToOne(() => CalendarEvent)
-  event: CalendarEvent;
+  @ManyToOne(() => require('./calendar-event.entity').CalendarEvent, (event) => event.attendees)
+   event: any;
 
   @RelationId((att: CalendarEventAttendee) => att.event)
   @Column()

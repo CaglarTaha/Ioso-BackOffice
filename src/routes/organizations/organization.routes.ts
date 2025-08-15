@@ -55,6 +55,7 @@ router.get('/my', authenticateToken(["User", "Admin"]), asyncWrap(OrganizationCo
  *         description: Organization not found
  */
 router.get('/:id', asyncWrap(OrganizationController.getOrganizationById));
+router.get('/detail/:id', asyncWrap(OrganizationController.getOrganizationByIdDetail));
 router.put('/:id', authenticateToken(["User", "Admin"]), asyncWrap(OrganizationController.updateOrganization));
 /**
  * @swagger

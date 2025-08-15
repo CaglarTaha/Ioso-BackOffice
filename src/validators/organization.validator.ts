@@ -14,3 +14,15 @@ export const updateOrganizationSchema = Joi.object({
 export const addMemberSchema = Joi.object({
   userId: Joi.number().integer().positive().required()
 });
+
+export const getOrganizationByIdDetailSchema = Joi.object({
+  timeZone: Joi.string()
+    .default('Europe/Istanbul')
+    .pattern(/^([A-Za-z]+\/[A-Za-z_]+)$/) // IANA timezone formatı
+    .optional(),
+  startDate: Joi.date().iso().optional(),
+  endDate: Joi.date()
+    .iso()
+    .optional()
+    .greater(Joi.ref('startDate'))
+});

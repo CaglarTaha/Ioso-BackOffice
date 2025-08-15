@@ -1,8 +1,14 @@
 // src/services/organization.service.ts
+import { CategorizedEvents } from '../calendar-event.types';
 import { AppDataSource } from '../core/data-source';
+import { CalendarEvent } from '../entity/calendar-event.entity';
 import { Organization } from '../entity/organization.entity';
 import { User } from '../entity/user.entity';
 import { CreateOrganizationDto, UpdateOrganizationDto } from '../interfaces/organization.interface';
+import { differenceInCalendarDays, addDays, format, formatISO } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
+import { mapEvent } from '../mapper/calendar-event.mapper';
+import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 
 export class OrganizationService {
 
@@ -26,6 +32,55 @@ export class OrganizationService {
       relations: ['members', 'events']
     });
   }
+
+static async getOrganizationByIdDetail(id: number, timeZone:string = 'Europe/Istanbul', startDate?: string, endDate?: string): Promise<{ categorizedEvents: CategorizedEvents } | null> {
+  const organizationRepository = AppDataSource.getRepository(Organization);
+
+const organization = await organizationRepository.findOne({
+  where: {
+    id,
+    events: {
+      startDate: startDate ? MoreThanOrEqual(new Date(startDate)) : undefined,
+      endDate: endDate ? LessThanOrEqual(new Date(endDate)) : undefined,
+    }
+  },
+  relations: ['events', 'events.attendees', 'events.attendees.user'],
+});
+
+  if (!organization) return null;
+
+  const categorizedEvents: CategorizedEvents = {};
+
+  for (const event of organization.events) {
+    const start = toZonedTime(new Date(event.startDate), timeZone);
+    const end = toZonedTime(new Date(event.endDate), timeZone);
+
+    const daysDiff = differenceInCalendarDays(end, start);
+
+    for (let i = 0; i <= daysDiff; i++) {
+      const currentDay = addDays(start, i);
+      const dateKey = format(currentDay, 'yyyy-MM-dd');
+
+      if (!categorizedEvents[dateKey]) categorizedEvents[dateKey] = {};
+
+      const dayStart = i === 0 ? start : new Date(currentDay.setHours(0, 0, 0, 0));
+      const dayEnd = i === daysDiff ? end : new Date(currentDay.setHours(23, 59, 59, 999));
+
+      let hourCursor = new Date(dayStart);
+      while (hourCursor <= dayEnd) {
+        const hourKey = format(hourCursor, 'HH:00');
+        if (!categorizedEvents[dateKey][hourKey]) categorizedEvents[dateKey][hourKey] = [];
+
+        categorizedEvents[dateKey][hourKey].push(mapEvent(event));
+
+        hourCursor.setHours(hourCursor.getHours() + 1);
+      }
+    }
+  }
+
+  return { categorizedEvents };
+}
+
 
   static async updateOrganization(id: number, data: UpdateOrganizationDto): Promise<Organization | null> {
     const organizationRepository = AppDataSource.getRepository(Organization);

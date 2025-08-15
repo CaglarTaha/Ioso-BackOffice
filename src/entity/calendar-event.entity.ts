@@ -1,6 +1,7 @@
 // src/entity/calendar-event.entity.ts
-import { Entity, Column, ManyToOne, RelationId } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinTable, RelationId, OneToMany } from 'typeorm';
 import { Base } from './base.entity';
+import { CalendarEventAttendee } from './calendar-event-attendee.entity';
 
 @Entity()
 export class CalendarEvent extends Base {
@@ -46,4 +47,7 @@ export class CalendarEvent extends Base {
 
   @ManyToOne("User")
   createdBy: any;
+
+  @OneToMany(() => CalendarEventAttendee, (attendee) => attendee.event)
+  attendees: CalendarEventAttendee[];
 }
