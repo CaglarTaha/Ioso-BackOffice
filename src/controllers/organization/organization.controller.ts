@@ -83,7 +83,7 @@ export class OrganizationController {
 
   static async getUserOrganizations(req: AuthenticatedRequest, res: Response) {
     if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: 'User not authenticated' });
     }
     const organizations = await OrganizationService.getUserOrganizations(req.user.id);
     res.json({ data: organizations });

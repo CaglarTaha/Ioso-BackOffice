@@ -79,9 +79,9 @@ export class OrganizationService {
   static async getUserOrganizations(userId: number): Promise<Organization[]> {
     const organizationRepository = AppDataSource.getRepository(Organization);
     return await organizationRepository
-      .createQueryBuilder('organization')
-      .leftJoin('organization.members', 'member')
-      .where('member.id = :userId', { userId })
-      .getMany();
+    .createQueryBuilder('organization')
+     .loadRelationCountAndMap('organization.memberCount', 'organization.members')
+     .loadRelationCountAndMap('organization.eventCount', 'organization.events')
+    .getMany();
   }
 }
