@@ -15,7 +15,7 @@ export class CalendarEventController {
     
     if (!event) {
       res.status(404).json({ message: 'Organization not found' });
-      return;
+      ;
     }
 
     res.status(201).json({ data: event });
@@ -33,7 +33,7 @@ export class CalendarEventController {
     
     if (!event) {
       res.status(404).json({ message: 'Event not found' });
-      return;
+      ;
     }
 
     res.json({ data: event });
@@ -46,7 +46,7 @@ export class CalendarEventController {
     
     if (!event) {
       res.status(404).json({ message: 'Event not found' });
-      return;
+      ;
     }
 
     res.json({ data: event });
@@ -58,7 +58,7 @@ export class CalendarEventController {
     
     if (!deleted) {
       res.status(404).json({ message: 'Event not found' });
-      return;
+      ;
     }
 
     res.status(204).send();
@@ -71,7 +71,7 @@ export class CalendarEventController {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       res.status(400).json({ message: 'Invalid date format' });
-      return;
+      ;
     }
 
     const events = await calendarEventService.getEventsByDateRange(organizationId, startDate, endDate);
@@ -90,7 +90,7 @@ export class CalendarEventController {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       res.status(400).json({ message: 'Invalid date format' });
-      return;
+      ;
     }
 
     const busyEvents = await calendarEventService.checkUserAvailability(req.user.id, startDate, endDate);
@@ -108,7 +108,7 @@ export class CalendarEventController {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       res.status(400).json({ message: 'Invalid date format' });
-      return;
+      ;
     }
 
     const events = await calendarEventService.getOrganizationCalendarView(organizationId, startDate, endDate);
@@ -122,7 +122,7 @@ export class CalendarEventController {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       res.status(400).json({ message: 'Invalid date format' });
-      return;
+      ;
     }
 
     const groupedEvents = await calendarEventService.getAllMembersEvents(organizationId, startDate, endDate);
@@ -137,7 +137,7 @@ export class CalendarEventController {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       res.status(400).json({ message: 'Invalid date format' });
-      return;
+      ;
     }
 
     const freeSlots = await calendarEventService.findTimeSlots(organizationId, duration, startDate, endDate);
@@ -147,6 +147,6 @@ export class CalendarEventController {
       period: { startDate, endDate },
       freeSlots 
     });
-    return;
+    ;
   }
 }

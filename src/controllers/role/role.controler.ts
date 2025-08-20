@@ -20,7 +20,7 @@ export class RoleController {
     const id = parseInt(req.params.id);
     const role = await RoleService.getRoleById(id);
     if (!role) {
-      return res.status(404).json({ message: 'Role not found' });
+      res.status(404).json({ message: 'Role not found' });
     }
     res.json({ data: role });
   }
@@ -32,7 +32,7 @@ export class RoleController {
       const { name } = req.body;
       const updatedRole = await RoleService.updateRole(id, { name });
       if (!updatedRole) {
-        return res.status(404).json({ message: 'Role not found' });
+        res.status(404).json({ message: 'Role not found' });
       }
       res.json(validate({data: mapToRole(updatedRole)},roleResponseValidator));
 

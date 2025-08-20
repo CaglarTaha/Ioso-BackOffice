@@ -21,7 +21,7 @@ export class OrganizationInviteController {
     
     if (!invite) {
       res.status(404).json({ error: 'Organizasyon bulunamadı veya yetkiniz yok' });
-      return;
+      ;
     }
 
     res.status(201).json({
@@ -35,7 +35,7 @@ export class OrganizationInviteController {
     const organizationId = parseInt(req.params.organizationId);
     
     if (isNaN(organizationId)) {
-      return res.status(400).json({ error: 'Geçersiz organizasyon ID' });
+      res.status(400).json({ error: 'Geçersiz organizasyon ID' });
     }
 
     const invites = await organizationInviteService.getOrganizationInvites(organizationId);
@@ -58,7 +58,7 @@ export class OrganizationInviteController {
         success: false,
         error: result.message 
       });
-      return;
+      ;
     }
 
     res.json({
@@ -72,14 +72,14 @@ export class OrganizationInviteController {
     const { inviteCode } = req.params;
     
     if (!inviteCode || inviteCode.length !== 8) {
-      return res.status(400).json({ error: 'Geçersiz davet kodu' });
+      res.status(400).json({ error: 'Geçersiz davet kodu' });
     }
 
     const invite = await organizationInviteService.getInviteByCode(inviteCode);
     
     if (!invite) {
       res.status(404).json({ error: 'Davet kodu bulunamadı' });
-      return;
+      ;
     }
 
     const publicInviteInfo = {
@@ -104,14 +104,14 @@ export class OrganizationInviteController {
     const inviteId = parseInt(req.params.inviteId);
     
     if (isNaN(inviteId)) {
-      return res.status(400).json({ error: 'Geçersiz davet ID' });
+      res.status(400).json({ error: 'Geçersiz davet ID' });
     }
 
     const result = await organizationInviteService.deactivateInvite(inviteId, req.user.id);
     
     if (!result) {
       res.status(404).json({ error: 'Davet bulunamadı veya yetkiniz yok' });
-      return;
+      ;
     }
 
     res.json({

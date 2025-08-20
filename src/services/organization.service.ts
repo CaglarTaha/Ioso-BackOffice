@@ -33,19 +33,25 @@ export class OrganizationService {
     });
   }
 
-static async getOrganizationByIdDetail(id: number, timeZone:string = 'Europe/Istanbul', startDate?: string, endDate?: string): Promise<{ categorizedEvents: CategorizedEvents } | null> {
+static async getOrganizationByIdDetail(
+  id: number, 
+  timeZone: string = 'Europe/Istanbul', 
+  startDate?: string, 
+  endDate?: string
+): Promise<Partial<Organization> & { categorizedEvents: CategorizedEvents } | null> {
+
   const organizationRepository = AppDataSource.getRepository(Organization);
 
-const organization = await organizationRepository.findOne({
-  where: {
-    id,
-    events: {
-      startDate: startDate ? MoreThanOrEqual(new Date(startDate)) : undefined,
-      endDate: endDate ? LessThanOrEqual(new Date(endDate)) : undefined,
-    }
-  },
-  relations: ['events', 'events.attendees', 'events.attendees.user'],
-});
+  const organization = await organizationRepository.findOne({
+    where: {
+      id,
+      events: {
+        startDate: startDate ? MoreThanOrEqual(new Date(startDate)) : undefined,
+        endDate: endDate ? LessThanOrEqual(new Date(endDate)) : undefined,
+      }
+    },
+    relations: ['events', 'events.attendees', 'events.attendees.user'],
+  });
 
   if (!organization) return null;
 
@@ -78,8 +84,12 @@ const organization = await organizationRepository.findOne({
     }
   }
 
-  return { categorizedEvents };
+  // members ve events alanlarını silerek categorizedEvents ile birleştir
+  const { members, events, ...organizationWithoutRelations } = organization;
+
+  return { ...organizationWithoutRelations, categorizedEvents };
 }
+
 
 
   static async updateOrganization(id: number, data: UpdateOrganizationDto): Promise<Organization | null> {

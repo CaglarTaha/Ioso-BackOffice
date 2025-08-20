@@ -24,7 +24,7 @@ export class UserController {
     const id = parseInt(req.params.id);
     const user = await UserServices.getUserById(id);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
     }
     res.json(user);
   }
@@ -69,7 +69,7 @@ export class UserController {
     const data = validate(req.body, userInputValidator);
     const UpdatedUser = await UserServices.updateUser(id,data);
     if (!UpdatedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
     }
     res.json(validate({ data: mapToUser(UpdatedUser) }, userResponseValidator));
   }

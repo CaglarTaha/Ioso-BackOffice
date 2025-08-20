@@ -52,7 +52,7 @@ export class OrganizationController {
     const organization = await OrganizationService.updateOrganization(id, data);
     
     if (!organization) {
-      return res.status(404).json({ message: 'Organization not found' });
+       res.status(404).json({ message: 'Organization not found' });
     }
 
     res.json({ data: organization });
@@ -63,7 +63,7 @@ export class OrganizationController {
     const deleted = await OrganizationService.deleteOrganization(id);
     
     if (!deleted) {
-      return res.status(404).json({ message: 'Organization not found' });
+       res.status(404).json({ message: 'Organization not found' });
     }
 
     res.status(204).send();
@@ -75,7 +75,7 @@ export class OrganizationController {
     const organization = await OrganizationService.addMemberToOrganization(organizationId, data.userId);
     
     if (!organization) {
-      return res.status(404).json({ message: 'Organization or user not found' });
+       res.status(404).json({ message: 'Organization or user not found' });
     }
 
     res.json({ data: organization });
@@ -87,7 +87,7 @@ export class OrganizationController {
     const organization = await OrganizationService.removeMemberFromOrganization(organizationId, userId);
     
     if (!organization) {
-      return res.status(404).json({ message: 'Organization not found' });
+       res.status(404).json({ message: 'Organization not found' });
     }
 
     res.json({ data: organization });
